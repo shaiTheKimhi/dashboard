@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#101412">
+  <title>Jetson · Device dashboard</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/style.css">
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Jetson dashboard home"><span class="brand-mark" aria-hidden="true">j.</span> jetson<span class="brand-detail">/ device dashboard</span></a>
+      <span class="private-label"><span aria-hidden="true">◈</span> PRIVATE DEVICE</span>
+    </header>
+    <main>
+      <section class="heading" aria-labelledby="page-title">
+        <div><p class="eyebrow">DEVICE OVERVIEW</p><h1 id="page-title">A pulse on your Jetson.</h1><p class="subtitle" id="device-subtitle">Connecting to your device…</p></div>
+        <div class="connection"><span class="status" id="connection-status" role="status">Connecting</span><span class="updated" id="last-update">Waiting for first reading</span></div>
+      </section>
+
+      <section class="metrics" aria-label="System readings">
+        <details class="metric-card" open><summary class="card-top"><h2>CPU utilization</h2><span class="metric-symbol" aria-hidden="true">▤</span></summary><p class="metric-value" id="cpu-value">—</p><div class="meter" id="cpu-meter" role="meter" aria-label="CPU utilization" aria-valuemin="0" aria-valuemax="100"><span></span></div><p class="metric-note">Across all CPU cores</p></details>
+        <details class="metric-card" open><summary class="card-top"><h2>GPU utilization</h2><span class="metric-symbol" aria-hidden="true">▦</span></summary><p class="metric-value" id="gpu-value">—</p><div class="meter" id="gpu-meter" role="meter" aria-label="GPU utilization" aria-valuemin="0" aria-valuemax="100"><span></span></div><p class="metric-note">Integrated NVIDIA graphics</p></details>
+        <details class="metric-card" open><summary class="card-top"><h2>System memory</h2><span class="metric-symbol" aria-hidden="true">▥</span></summary><p class="metric-value" id="ram-value">—</p><div class="meter" id="ram-meter" role="meter" aria-label="RAM utilization" aria-valuemin="0" aria-valuemax="100"><span></span></div><p class="metric-note" id="ram-detail">Shared CPU + GPU memory</p></details>
+        <details class="metric-card" open><summary class="card-top"><h2>Temperature</h2><span class="metric-symbol" aria-hidden="true">♨</span></summary><p class="metric-value" id="temp-value">—</p><div class="temperature-detail"><span id="gpu-temp">GPU —</span><span class="muted">CPU sensor</span></div><p class="metric-note">Live thermal readings</p></details>
+      </section>
+
+      <div class="detail-grid">
+        <details class="panel system-panel" aria-labelledby="system-title" open><summary class="panel-heading"><h2 id="system-title">System details</h2><span class="section-tag">HARDWARE & OS</span></summary><dl class="system-details"><div><dt>Hostname</dt><dd id="hostname">—</dd></div><div><dt>Operating system</dt><dd id="os">—</dd></div><div><dt>Kernel</dt><dd id="kernel">—</dd></div><div><dt>L4T release</dt><dd id="l4t">—</dd></div><div><dt>Uptime</dt><dd id="uptime">—</dd></div><div><dt>Swap</dt><dd id="swap">—</dd></div></dl></details>
+        <details class="panel" aria-labelledby="storage-title" open><summary class="panel-heading"><h2 id="storage-title">Storage</h2><span class="section-tag">FILESYSTEMS</span></summary><div id="storage-list" class="storage-list"><p class="muted">Waiting for storage readings…</p></div></details>
+      </div>
+
+      <details class="panel network-panel" aria-labelledby="network-title" open><summary class="panel-heading"><h2 id="network-title">Network</h2><span class="section-tag">LIVE TRAFFIC</span></summary><div id="network-list" class="network-list"><p class="muted">Waiting for network readings…</p></div></details>
+      <p id="metric-warnings" class="notice" role="status" hidden></p>
+
+      <details class="panel files-panel" aria-labelledby="files-title" open>
+        <summary class="panel-heading files-heading"><h2 id="files-title">Device files <span class="pill">FILE MANAGER</span></h2></summary>
+        <div class="files-controls"><p class="panel-description">Browse, create, edit, download, or delete files and folders.</p><div class="file-actions"><button type="button" id="new-file" class="button" disabled>New file</button><button type="button" id="new-folder" class="button" disabled>New folder</button><label class="hidden-toggle"><input type="checkbox" id="show-hidden"> Show hidden files</label><button type="button" id="refresh-files" class="button">↻ <span>Refresh</span></button></div></div>
+        <div class="file-toolbar"><nav id="breadcrumbs" aria-label="Directory breadcrumbs"><span>Shared files</span></nav><span id="file-count" class="file-count">—</span></div>
+        <p id="file-operation-status" class="file-operation-status" role="status" hidden></p>
+        <p id="file-status" class="file-status" role="status">Loading shared files…</p>
+        <div class="table-scroll"><table id="file-table" hidden><caption class="sr-only">Files in the current shared directory</caption><thead><tr><th scope="col">Name</th><th scope="col">Size</th><th scope="col">Modified</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody id="file-rows"></tbody></table></div>
+        <p class="files-footer">Only the configured shared directory is accessible. All readable contents, including hidden files, are shared.</p>
+      </details>
+      <dialog id="create-dialog" class="file-dialog entry-dialog" aria-labelledby="create-title">
+        <form id="create-form">
+          <h2 id="create-title">New file</h2><p id="create-location" class="dialog-path"></p>
+          <label for="create-name">Name</label><input id="create-name" type="text" required pattern="[^\/]+" maxlength="255" autocomplete="off" autofocus>
+          <p id="create-status" class="dialog-status" role="status"></p>
+          <div class="dialog-actions"><button type="button" id="create-cancel" class="button">Cancel</button><button type="submit" id="create-submit" class="button primary-button">Create</button></div>
+        </form>
+      </dialog>
+      <dialog id="delete-dialog" class="file-dialog entry-dialog" aria-labelledby="delete-title">
+        <h2 id="delete-title">Delete entry</h2><p id="delete-path" class="dialog-path"></p>
+        <p id="delete-description" class="panel-description"></p>
+        <label id="delete-name-label" for="delete-name" hidden>Type the folder name to confirm</label><input id="delete-name" type="text" autocomplete="off" hidden>
+        <p id="delete-status" class="dialog-status" role="status"></p>
+        <div class="dialog-actions"><button type="button" id="delete-cancel" class="button">Cancel</button><button type="button" id="delete-confirm" class="button danger-button" disabled>Delete permanently</button></div>
+      </dialog>
+      <dialog id="editor-dialog" class="file-dialog" aria-labelledby="editor-title">
+        <h2 id="editor-title">Edit text file</h2>
+        <p id="editor-path" class="dialog-path"></p>
+        <label for="editor-content" class="sr-only">File contents</label>
+        <textarea id="editor-content" spellcheck="false" autocapitalize="off" autocomplete="off" disabled></textarea>
+        <p id="editor-status" class="dialog-status" role="status"></p>
+        <div class="dialog-actions"><button type="button" id="editor-cancel" class="button">Cancel</button><button type="button" id="editor-save" class="button primary-button" disabled>Save</button></div>
+      </dialog>
+      <dialog id="external-dialog" class="file-dialog external-dialog" aria-labelledby="external-title">
+        <h2 id="external-title">Edit in a desktop app</h2>
+        <p class="panel-description">Connect using SFTP in your editor or file-transfer app, then open this file. Saving in that app updates the file on this device.</p>
+        <p id="external-connection" class="dialog-path"></p>
+        <label for="external-path">Remote file path</label><input id="external-path" type="text" readonly>
+        <label for="external-url">SFTP link</label><input id="external-url" type="text" readonly>
+        <p class="panel-description">Use your device SSH login, which is separate from the dashboard password. “Open SFTP app” works when your computer has a registered SFTP app.</p>
+        <p id="external-status" class="dialog-status" role="status"></p>
+        <div class="dialog-actions"><a id="external-open" class="button" hidden>Open SFTP app</a><button type="button" id="external-copy" class="button" disabled>Copy link</button><button type="button" id="external-close" class="button">Close</button></div>
+      </dialog>
+      <noscript><p class="notice">Enable JavaScript to view current readings and browse files.</p></noscript>
+    </main>
+    <footer class="page-footer"><span>JETSON <span class="muted">/</span> LOCAL DASHBOARD</span><span>Live readings · 2 second refresh</span></footer>
+  </div>
+</body>
+</html>

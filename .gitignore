@@ -1,0 +1,7 @@
+/build/
+/.superpowers/
+*.log
+*.pem
+*.key
+dashboard.env
+__pycache__/
